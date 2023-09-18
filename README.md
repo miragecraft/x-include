@@ -12,6 +12,7 @@ Cross site HTML include via &lt;script> tag in the manner of JSONP.
  
 *Advanced features:*
 
+- `data()` method for data passing (as raw JavaScript variable definition)
 - `<include-once>` tag allowing smarter resource management
 - Detect and block infinite include loops (can be bypassed)
 
