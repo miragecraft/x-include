@@ -26,13 +26,14 @@ I suck at coding, so no advanced techniques here. Also it's not optmized for spe
 ## Documentation
 
 1. [Basic usage](#basic)
-2. [Passing data to include files](#passing)
-3. [`data()` method](#data)
-4. [Using `<include-once>` tag](#once)
-5. [Infinite loop detection](#loop)
-6. [Relative path remapping](#remap)
-7. [FOUC prevention](#fouc)
-8. [Syntax Highlighting](#highlight)
+2. [Async and defer for included scripts](#async)
+3. [Passing data to include files](#passing)
+4. [`data()` method](#data)
+5. [Using `<include-once>` tag](#once)
+6. [Infinite loop detection](#loop)
+7. [Relative path remapping](#remap)
+8. [FOUC prevention](#fouc)
+9. [Syntax Highlighting](#highlight)
 
 ### Basic usage <a id='basic'></a>
 
@@ -73,6 +74,14 @@ _include(`
   </script>
 `)
 ```
+
+### Async and defer for included scripts <a id='async'></a>
+
+As all dynamically inserted script tags are async by default, the include function automatically change async to false.
+
+However, the function check whether the `async` attribute exist, in which case it will leave async to true.
+
+Therefore, included scripts will behave exactly like how they would if they exists on the host page natively, and both `async` and `defer` attributes work as you expect.
 
 ### Passing data to include files <a id='passing'></a>
 
