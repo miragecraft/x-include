@@ -259,14 +259,14 @@ Relative path remapping allows you to include the same HTML from different direc
 
 It works by detecting currentScript's `src` attribute, then parse the included HTML string and reconcile all the relative path detected based on the aforementioned `src` value.
 
-The logic is as followed, first the HTML string is parsed into a documentFragment, and then it will try to detect relative path within the following:
+The logic is as followed, first the HTML string is parsed into a DocumentFragment, and then it will try to detect relative path within the following:
 
  - `href`, `src` and `srcset` attributes
  - `<object>` element's `data` attribute
  - `<form>` element's `action` attribute
  - `<style>` element and `style` attributes containing `url()` (with optional single or double quotes)
 
-By utilizing the HTML parser, paths that are part of the text (such as within code blocks) are excluded from remapping.
+By utilizing the DOM parser via DocumentFragment, paths that are part of the text (such as within code blocks) are excluded from remapping.
 
 ### FOUC prevention <a id='fouc'></a>
 
