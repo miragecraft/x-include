@@ -1,6 +1,6 @@
 # HTML XS Include
 
-Cross site HTML include via &lt;script> tag in the manner of JSONP, primarily to allow its use via the `file://` protocol.
+Cross site HTML include via &lt;script> tag in the manner of JSONP.
 
 *Basic features:*
 
@@ -14,6 +14,10 @@ Cross site HTML include via &lt;script> tag in the manner of JSONP, primarily to
 
 - `<include-once>` tag allowing smarter resource management
 - Detect and block infinite include loops (can be bypassed)
+
+*Note:*
+
+I suck at coding, so no advanced techniques here. Also it's not optmized for speed but for clarity.
 
 ## Documentation
 
