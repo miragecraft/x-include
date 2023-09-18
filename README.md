@@ -102,7 +102,7 @@ _include(`
 
 Ok, this is nice and all, but JSON doesn't support multiline strings, what can you do if you want to send large chunks of HTML to the include file?
 
-the answer is simple, instead of using JSON you simply define a native JavaScript object using all the syntactic sugar at your disposal, and use Function constructor to parse it instead of `JSON.parse()`.
+The answer is simple, instead of using JSON you simply define a native JavaScript object using all the syntactic sugar at your disposal, and use Function constructor to parse it instead of `JSON.parse()`.
 
 The Function constructor is a slightly safer version of `eval()`, as such should be used with restraint. In this use case though it does make sense.
 
