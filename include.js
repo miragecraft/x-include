@@ -176,3 +176,7 @@ return (html)=>{
 }
 
 })();
+
+
+// data parser (JSON alternative)
+_include.data = (()=>new Function('return '+document.currentScript.innerHTML.trim())());
