@@ -26,12 +26,13 @@ I suck at coding, so no advanced techniques here. Also it's not optmized for spe
 ## Documentation
 
 1. [Basic usage](#basic)
-2. [Advanced usage](#advanced)
-3. [Syntax Highlighting](#highlight)
+2. [Passing data to include files](#passing)
+3. [`data()` method](#data)
 4. [Using `<include-once>` tag](#once)
 5. [Infinite loop detection](#loop)
 6. [Relative path remapping](#remap)
 7. [FOUC prevention](#fouc)
+8. [Syntax Highlighting](#highlight)
 
 ### Basic usage <a id='basic'></a>
 
@@ -73,11 +74,13 @@ _include(`
 `)
 ```
 
-### Advanced usage  <a id='advanced'></a>
+### Passing data to include files <a id='passing'></a>
 
 When providing a source for external script, the script tag content is ignored.
 
 But we can use this ignored content as data carrier to elegantly send data to the included file.
+
+The following example uses JSON.
 
 ```html
 <script src="includes/head.js">
@@ -100,35 +103,6 @@ _include(`
 `)
 ```
 
-Ok, this is nice and all, but JSON doesn't support multiline strings, what can you do if you want to send large chunks of HTML to the include file?
-
-The answer is simple, instead of using JSON you simply define a native JavaScript object using all the syntactic sugar at your disposal, and use Function constructor to parse it instead of `JSON.parse()`.
-
-The Function constructor is a slightly safer version of `eval()`, as such should be used with restraint. In this use case though it does make sense.
-
-```html
-<script src="includes/article.js">
-{
-  theme: 'dark',
-  html: `
-    <h1>Title</h1>
-    <span>Subtitle</div>
-    <p>Praesent nec magna gravida, maximus purus eget, lobortis neque.</p>
-    <p>Nulla consectetur auctor turpis, id interdum libero placerat ac. Aliquam ullamcorper, justo sit amet vestibulum imperdiet, lorem ligula pulvinar velit, in dapibus ligula ipsum a enim.</p>
-  `
-}
-</script>
-```
-```js
-//article.js
-let data = new Function(`return ${document.currentScript.innerHTML.trim()}`)();
-_include(`
-  <article class="${data.theme}">
-    ${data.html}
-  </article>
-`);
-```
-
 Another way to include HTML is to utilize the template tag.
 
 Since the include is done synchronously, the corresponding script tag needs to be placed after the template tag as the DOM beyond the current script tag has not been created yet.
@@ -144,21 +118,71 @@ Since the include is done synchronously, the corresponding script tag needs to b
 ```
 
 ```js
-let prev = document.currentScript.previousElementSibling;
-let content = prev.innerHTML;
-_include(/*syntax:html*/`
-    <section class="prose">
-      ${content}
-    </section>
+let template = document.currentScript.previousElementSibling;
+let content = template.innerHTML;
+_include(/`
+  <section class="prose">
+    ${content}
+  </section>
 `);
-prev.remove();
+template.remove();
 ```
 
-I'm sure there are more methods, which one you utilize depending on the situation and your preference.
+### Parse native JavaScript code with `_include.data()`  <a id='data'></a>
 
-### Syntax highlighting <a id='highlight'></a>
+JSON is not intended to be handwritten, as it has the following usability drawbacks:
 
-Various editors have plugins/extensions available for template literal (multiline string) syntax highlighting (ex. [VS Code](https://marketplace.visualstudio.com/items?itemName=Tobermory.es6-string-html)), making editing HTML strings much easier.
+1. No multiline string support
+2. Must quote object keys, adding to verbosity
+
+So as an alternative, the `_include.data()` method is provided to parse `<script>` tag content as raw JavaScript using the `Function()` constructor.
+
+This allows you to pass data as if you're defining a variable, with all the syntactic sugar at your dispoal while preserving syntax highlighting.
+
+```html
+<!-- passing an object -->
+<script src="includes/article.js">
+{
+  theme: 'dark',
+  html: `
+    <h1>Title</h1>
+    <span>Subtitle</div>
+    <p>Praesent nec magna gravida, maximus purus eget, lobortis neque.</p>
+    <p>Nulla consectetur auctor turpis, id interdum libero placerat ac. Aliquam ullamcorper, justo sit amet vestibulum imperdiet, lorem ligula pulvinar velit, in dapibus ligula ipsum a enim.</p>
+  `
+}
+</script>
+```
+```js
+//article.js
+let data = _include.data();
+_include(`
+  <article class="${data.theme}">
+    ${data.html}
+  </article>
+`);
+```
+
+```html
+<!-- passing a string -->
+<script src="includes/article.js">
+`
+  <h1>Title</h1>
+  <span>Subtitle</div>
+  <p>Praesent nec magna gravida, maximus purus eget, lobortis neque.</p>
+  <p>Nulla consectetur auctor turpis, id interdum libero placerat ac. Aliquam ullamcorper, justo sit amet vestibulum imperdiet, lorem ligula pulvinar velit, in dapibus ligula ipsum a enim.</p>
+`
+</script>
+```
+```js
+//article.js
+let data = _include.data();
+_include(`
+  <article>
+    ${data}
+  </article>
+`);
+```
 
 ### Using `<include-once>` tag <a id='once'></a>
 
@@ -245,3 +269,7 @@ Flash of unstyled content (FOUC) is prevented by loading HTML synchronously in a
 This is done by directly injecting `<script>` tags with `async` set to `false` for external scripts (inline scripts are always synchronous). External stylesheets are loaded either with the attribute `blocking="render"` [(MDN)](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/link#blocking) which is currently supported only by Chrome, or with `document.write`.
 
 *Limitation*: External stylesheets critical for site layout should not be inside nested includes, as `document.write` isn't allowed from `an asynchronously-loaded external script`.
+
+### Syntax highlighting <a id='highlight'></a>
+
+Various editors have plugins/extensions available for template literal (multiline string) syntax highlighting (ex. [VS Code](https://marketplace.visualstudio.com/items?itemName=Tobermory.es6-string-html)), making editing HTML strings much easier.
