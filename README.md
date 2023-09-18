@@ -123,7 +123,7 @@ _include(`
 
 Another way to include HTML is to utilize the template tag.
 
-Since the include is done synchronously, the corresponding script tag has follow the template tag as the HTML parser has only constructed the page up to the current script tag.
+Since the include is done synchronously, the corresponding script tag needs to be placed after the template tag as the DOM beyond the current script tag has not been created yet.
 
 ```html
 <template>
