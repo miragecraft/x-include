@@ -1,4 +1,4 @@
-# HTML XS include
+# HTML XS Include
 
 Cross site HTML include via &lt;script> tag in the manner of JSONP, primarily to allow its use via the `file://` protocol.
 
