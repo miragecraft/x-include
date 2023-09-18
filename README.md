@@ -26,7 +26,7 @@ I suck at coding, so no advanced techniques here. Also it's not optmized for spe
 2. [Async and defer for included scripts](#async)
 3. [Passing data to include files](#passing)
 4. [`data()` method](#data)
-5. [Using `<include-once>` tag](#once)
+5. [`<include-once>` tag](#once)
 6. [Infinite loop detection](#loop)
 7. [Relative path remapping](#remap)
 8. [FOUC prevention](#fouc)
@@ -134,7 +134,7 @@ _include(/`
 template.remove();
 ```
 
-### Parse native JavaScript code with `_include.data()`  <a id='data'></a>
+### `data()` method  <a id='data'></a>
 
 JSON is not intended to be handwritten, as it has the following usability drawbacks:
 
@@ -190,7 +190,7 @@ _include(`
 `);
 ```
 
-### Using `<include-once>` tag <a id='once'></a>
+### `<include-once>` tag <a id='once'></a>
 
 In order to prevent resources and unique content from being included multiple times, a `<include-once>` custom element is provided with optional `title` attribute.
 
