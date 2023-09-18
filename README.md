@@ -2,6 +2,10 @@
 
 Cross site HTML include via &lt;script> tag in the manner of JSONP.
 
+You know that humorously named butter substitute called "Memories of Butter"?
+
+This is that, but for HTML Imports.
+
 *Basic features:*
 
 - Bypass CORS, usable with `file://` protocol.
