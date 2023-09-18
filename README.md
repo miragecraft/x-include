@@ -12,7 +12,7 @@ Cross site HTML include via &lt;script> tag in the manner of JSONP, primarily to
  
 *Advanced features:*
 
-- `<include-once>` tag allow smart resources management
+- `<include-once>` tag allowing smarter resource management
 - Detect and block infinite include loops (can be bypassed)
 
 ## Documentation
