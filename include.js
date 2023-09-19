@@ -90,7 +90,7 @@ return (html)=>{
     }
     // else prevent infinite loop
     else if (ancestry.has(index(e.src))) {
-      throw new Error('Infinite include loop terminated');
+      throw new Error('Infinite include loop terminated.');
     }
   })
 
@@ -177,6 +177,14 @@ return (html)=>{
 
 })();
 
-
 // data parser (JSON alternative)
 _include.data = (()=>new Function('return '+document.currentScript.innerHTML.trim())());
+// retrieve previous template tag
+_include.template = (()=>{
+  let template = document.currentScript.previousElementSibling;
+  if (!template.matches('template'))
+    throw new Error('Missing <template>, must be place before the include <script>.');
+  let cache = template.cloneNode(true);
+  template.remove();
+  return cache;
+})
