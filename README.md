@@ -12,7 +12,7 @@ Cross site HTML include via &lt;script> tag in the manner of JSONP.
  
 *Advanced features:*
 
-- `data()` method for passing data as raw JavaScript variable definition
+- `data()` and `template()` methods for passing data to include files
 - `<include-once>` tag allowing smarter resource management
 - Detect and block infinite include loops (can be bypassed)
 
@@ -25,7 +25,6 @@ I suck at coding, so no advanced techniques here. Also it's not optmized for spe
 1. [Basic usage](#basic)
 2. [Async and defer for included scripts](#async)
 3. [Passing data to include files](#passing)
-4. [`data()` method](#data)
 5. [`<include-once>` tag](#once)
 6. [Infinite loop detection](#loop)
 7. [Relative path remapping](#remap)
@@ -82,6 +81,8 @@ Therefore, included scripts will behave exactly like how they would if they exis
 
 ### Passing data to include files <a id='passing'></a>
 
+#### 1. JSON
+
 When providing a source for external script, the script tag content is ignored.
 
 But we can use this ignored content as data carrier to elegantly send data to the included file.
@@ -109,39 +110,14 @@ _include(`
 `)
 ```
 
-Another way to include HTML is to utilize the template tag.
+#### 2. `data()` method
 
-Since the include is done synchronously, the corresponding script tag needs to be placed after the template tag as the DOM beyond the current script tag has not been created yet.
-
-```html
-<template>
-  <h1>Title</h1>
-  <span>Subtitle</div>
-  <p>Praesent nec magna gravida, maximus purus eget, lobortis neque.</p>
-  <p>Nulla consectetur auctor turpis, id interdum libero placerat ac. Aliquam ullamcorper, justo sit amet vestibulum imperdiet, lorem ligula pulvinar velit, in dapibus ligula ipsum a enim.</p>
-</template>
-<script src="includes/prose.js"></script>
-```
-
-```js
-let template = document.currentScript.previousElementSibling;
-let content = template.innerHTML;
-_include(/`
-  <section class="prose">
-    ${content}
-  </section>
-`);
-template.remove();
-```
-
-### `data()` method  <a id='data'></a>
-
-JSON is not intended to be handwritten, as it has the following usability drawbacks:
+As JSON is not intended to be handwritten, it has the following usability drawbacks:
 
 1. No multiline string support
 2. Must quote object keys, adding to verbosity
 
-So as an alternative, the `_include.data()` method is provided to parse `<script>` tag content as raw JavaScript using the `Function()` constructor.
+So as an alternative, the `_include.data()` method is provided to parse `<script>` tag content as native JavaScript using the `Function()` constructor.
 
 This allows you to pass data as if you're defining a variable, with all the syntactic sugar at your dispoal while preserving syntax highlighting.
 
@@ -188,6 +164,35 @@ _include(`
     ${data}
   </article>
 `);
+```
+
+#### 3. `template()` method
+
+This method utilizes the `<template>` tag, you must place the template before the include script in order to make it visible to the script.
+
+The advantage of the `_include.template()` method is that you do not need to escape unsafe characters.
+
+Example shown below:
+
+```html
+<template>
+  <h1>Title</h1>
+  <span>Subtitle</div>
+  <p>Praesent nec magna gravida, maximus purus eget, lobortis neque.</p>
+  <p>Nulla consectetur auctor turpis, id interdum libero placerat ac. Aliquam ullamcorper, justo sit amet vestibulum imperdiet, lorem ligula pulvinar velit, in dapibus ligula ipsum a enim.</p>
+</template>
+<script src="includes/prose.js"></script>
+```
+
+```js
+let template = _include.template();
+// manipulate the template DOM as needed.
+_include(/`
+  <section class="prose">
+    ${template.innerHTML}
+  </section>
+`);
+template.remove();
 ```
 
 ### `<include-once>` tag <a id='once'></a>
