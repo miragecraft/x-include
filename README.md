@@ -20,6 +20,14 @@ Cross site HTML include via &lt;script> tag in the manner of JSONP.
 
 I suck at coding, so no advanced techniques here. Also it's not optmized for speed but for clarity.
 
+*For future consideration:*
+
+Relative path remapping is undesirable when passing HTML data from the host page into the include file and intermix with HTML from the include file itself.
+
+There should be a way to mark specific sections of HTML to be excluded from remapping.
+
+I'll get to it when it becomes an issue for my own use.
+
 ## Documentation
 
 1. [Basic usage](#basic)
