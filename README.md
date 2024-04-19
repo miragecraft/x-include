@@ -79,7 +79,7 @@ You can either pass a string, or a function with 3 helpers available - `link`, `
 // head.js
 // the link() function allow you to define link as relative to the include file, it will be automatically remapped
 // the data variable is the object passed by the include() call
-include.html(x->`
+include.html(x=>`
   <title>${x.data.title}</title>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
