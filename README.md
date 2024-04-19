@@ -2,6 +2,8 @@
 
 Cross site, synchronous HTML include via the `<script>` tag in the manner of JSONP.
 
+[Github](https://github.com/miragecraft/html-include)
+
 **Intended usage**
 
 Ideal for creating complex HTML documents, such as documentations, that can be viewed from local storage without using a static site generator.
@@ -77,17 +79,24 @@ You can either pass a string, or a function with 3 helpers available - `link`, `
 // head.js
 // the link() function allow you to define link as relative to the include file, it will be automatically remapped
 // the data variable is the object passed by the include() call
+include.html(x->`
+  <title>${x.data.title}</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" type="image/svg+xml" href="${x.link("../img/favicon.svg")}">
+  <link rel="stylesheet" media="screen" href="${x.link("../css/style.css")}">
+`)
+```
+
+Alternatively, with destructuring parameters
+
+```js
 include.html(({link, data})=>`
   <title>${data.title}</title>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="icon" type="image/svg+xml" href="${link("../img/favicon.svg")}">
   <link rel="stylesheet" media="screen" href="${link("../css/style.css")}">
-  <script>
-    document.addEventListener('DOMContentLoaded', ()=>{
-      document.title = document.querySelector('h1').innerText;
-    })
-  </script>
 `)
 ```
 
