@@ -93,7 +93,7 @@ const include = (()=>{
     self.replaceWith(html);
 
     function write(e){
-      let str = e.outerHTML.replace('</script>', '</scr\` + \`ipt>');
+      let str = e.outerHTML.replace('</script>', '<\`+\`/script>');
       return document.createRange().createContextualFragment(`
         <script>
           document.write(\`${str}\`);
