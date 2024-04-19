@@ -2,11 +2,18 @@
 
 Cross site, synchronous HTML include via the `<script>` tag in the manner of JSONP.
 
+## Intended usage
+
+Ideal for creating complex HTML documents, such as documentations, that can be viewed from local storage without using a static site generator.
+
+It can also be used for apps, but CORS restriction means the use cases are limited.
+
 *Basic features:*
 
-- Bypass CORS, usable with `file://` protocol.
-- Synchronous, parser-blocking loading and execution
- 
+- Bypass CORS, usable with `file://` protocol
+- Synchronous
+- Parser-blocking
+
 *Advanced features:*
 
 - `data-root` attribute allows specifying include base directory
@@ -83,6 +90,8 @@ include.html(({link, data})=>`
   </script>
 `)
 ```
+
+Note that JavaScript inside the include file will run before those in the included HTML in the same file.
 
 ### Passing HTML via `<template>` <a id='template'></a>
 
