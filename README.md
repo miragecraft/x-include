@@ -2,8 +2,6 @@
 
 Cross site, synchronous HTML include via the `<script>` tag in the manner of JSONP.
 
-[Github](https://github.com/miragecraft/html-include)
-
 **Intended usage**
 
 Ideal for creating complex HTML documents, such as documentations, that can be viewed from local storage without using a static site generator.
@@ -24,7 +22,7 @@ It can also be used for apps, but CORS restriction means the use cases are limit
 - `<include-once>` tag allowing smarter resource management
 - Detect and block infinite include loops (can be bypassed)
 
-## Documentation
+## Table of Contents
 
 1. [Basic usage and data passing](#basic)
 2. [Passing HTML via `<template>`](#template)
@@ -49,22 +47,19 @@ Data-root is set either in the `data-root` attribute of the script tag that load
 <!DOCTYPE html>
 <html>
 <head>
-  <!-- load this library, and define the include folder path relative to the include.js file -->
+  <!-- initialize and define the relative path (from the include.js) to the include folder -->
   <script src="js/include.js" data-root="../includes"></script>
-  <!-- include a file, optionally pass an object as the second argument -->
+  <!-- include file, optionally pass an object as the second argument -->
   <script>include('head.js', {title: "Hello World"})</script>
 </head>
 <body>
-  <script>include('header.js')</script>
   <main>
     <article>
       <h1>Lorem Ipsum</h1>
       <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed pellentesque neque vitae varius facilisis.</p>
       <p>Morbi ut urna bibendum, molestie lectus et, cursus dui. Aliquam erat volutpat. Ut nec mi id tortor fermentum scelerisque. Suspendisse congue porta libero, a elementum mauris ullamcorper et.</p>
-      <p>Morbi ac odio fermentum, scelerisque sapien at, fringilla libero. Curabitur accumsan molestie dolor, vitae vestibulum quam tempus vitae. Maecenas rhoncus purus sem. Pellentesque eu urna magna. Phasellus et lectus urna.</p>
     </article>
   </main>
-  <script>include('footer.js')</script>
 </body>
 </html>
 ```
@@ -77,8 +72,7 @@ You can either pass a string, or a function with 3 helpers available - `link`, `
 
 ```js
 // head.js
-// the link() function allow you to define link as relative to the include file, it will be automatically remapped
-// the data variable is the object passed by the include() call
+// the link() function remap relative path to the include file to the host HTML file
 include.html(x=>`
   <title>${x.data.title}</title>
   <meta charset="UTF-8">
@@ -122,7 +116,7 @@ Example shown below:
 
 ```js
 // prose.js
-include(({template})=>`
+include.html(({template})=>`
   <section class="prose">
     ${template.innerHTML}
   </section>
@@ -142,10 +136,10 @@ This apples to multiple occurrences within the file itself, as well as multiple 
 ```js
 // duplicate.js
 include.html(`
-<include-once>
-  <p>Unique</p>
-</include-once>
-<p>Repeating</p>
+  <include-once>
+    <p>Unique</p>
+  </include-once>
+  <p>Repeating</p>
 `)
 ```
 ```html
@@ -163,18 +157,18 @@ By providing a unique `title` attribute, the content of the `<include-once>` ele
 
 ```js
 // duplicate1.js
-_include(`
-<include-once title="lorem-ipsum">
-  <p>Unique</p>
-</include-once>
-<p>One</p>
+include.html(`
+  <include-once title="lorem-ipsum">
+    <p>Unique</p>
+  </include-once>
+  <p>One</p>
 `)
 // duplicate2.js
-_include(`
-<include-once title="lorem-ipsum">
-  <p>Unique</p>
-</include-once>
-<p>Two</p>
+include.html(`
+  <include-once title="lorem-ipsum">
+    <p>Unique</p>
+  </include-once>
+  <p>Two</p>
 `)
 ```
 ```html
