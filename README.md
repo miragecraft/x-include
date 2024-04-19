@@ -126,9 +126,9 @@ In order to prevent resources and unique content from being included multiple ti
 
 *1. Include once within the same script file*
 
-When used by itself without a title attribute, the content of the `<include-once>` element is only rendered the first time the script file is included.
+When used by itself without a title attribute, the content of the `<include-once>` element will only be rendered once for the same include file.
 
-All subsequent includes for, and within, the same include file will omit this content.
+This apples to multiple occurrences within the file itself, as well as multiple includes targeting the file.
 
 ```js
 // duplicate.js
