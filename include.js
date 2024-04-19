@@ -71,12 +71,10 @@ const include = (()=>{
       }
     });
 
-    // FOUC mitigation for external CSS
     if (document.readyState === 'loading') {
-
       // force evaluate via inline document.write
       scripts.forEach((e)=>{e.replaceWith(write(e))})
-
+      // FOUC mitigation for external CSS
       let links = html.querySelectorAll('link[rel=stylesheet]');
       // use "blocking" attribute (Chrome)
       if (blockable) {
@@ -184,9 +182,7 @@ const include = (()=>{
 
       if (path.indexOf('../') > 0) {
         throw new Error('Cannot resolve path');
-      } 
-
-
+      }
 
       return path
     }
