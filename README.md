@@ -1,55 +1,52 @@
 # HTML Include
 
-Cross site HTML include via &lt;script> tag in the manner of JSONP.
+Cross site, synchronous HTML include via the `<script>` tag in the manner of JSONP.
 
 *Basic features:*
 
 - Bypass CORS, usable with `file://` protocol.
-- Synchronous
-  - Prevent FOUC
-  - Simple dependency management
-- Dynamically remap relative paths inside includes
+- Synchronous, parser-blocking loading and execution
  
 *Advanced features:*
 
-- `data()` and `template()` methods for passing data to include files
+- `data-root` attribute allows specifying include base directory
+- `link()` function to remap relative paths inside includes
+- `data` and `template` variables for passing data to include files
 - `<include-once>` tag allowing smarter resource management
 - Detect and block infinite include loops (can be bypassed)
 
-*Note:*
-
-I suck at coding, so no advanced techniques here. Also it's not optmized for speed but for clarity.
-
-*For future consideration:*
-
-Relative path remapping is undesirable when passing HTML data from the host page into the include file and intermix with HTML from the include file itself.
-
-There should be a way to mark specific sections of HTML to be excluded from remapping.
-
-I'll get to it when it becomes an issue for my own use.
-
 ## Documentation
 
-1. [Basic usage](#basic)
-2. [Async and defer for included scripts](#async)
-3. [Passing data to include files](#passing)
-5. [`<include-once>` tag](#once)
-6. [Infinite loop detection](#loop)
-7. [Relative path remapping](#remap)
-8. [FOUC prevention](#fouc)
-9. [Syntax Highlighting](#highlight)
+1. [Basic usage and data passing](#basic)
+2. [Passing HTML via `<template>`](#template)
+3. [`<include-once>` tag](#once)
+4. [Infinite loop detection](#loop)
+5. [Relative path remapping](#remap)
+6. [Async and defer for included scripts](#async)
+7. [FOUC prevention](#fouc)
+8. [Syntax Highlighting](#highlight)
 
-### Basic usage <a id='basic'></a>
+### Basic usage and data passing<a id='basic'></a>
+
+Include files are loaded using via the `include()` function inside an inline script tag.
+
+It accepts the URL of the include file, relative to the data-root (include folder location), and an optional data object used to pass data to the included file.
+
+This data object will be passed via `JSON.stringify()` so functions need to be passed via the `<template>` method instead.
+
+Data-root is set either in the `data-root` attribute of the script tag that loads the `include.js` library , or can be hard coded in the `include.js` file itself.
 
 ```html
 <!DOCTYPE html>
 <html>
 <head>
-  <script src="js/include.js"></script>
-  <script src="includes/head.js"></script>
+  <!-- load this library, and define the include folder path relative to the include.js file -->
+  <script src="js/include.js" data-root="../includes"></script>
+  <!-- include a file, optionally pass an object as the second argument -->
+  <script>include('head.js', {title: "Hello World"})</script>
 </head>
 <body>
-  <script src="includes/header.js"></script>
+  <script>include('header.js')</script>
   <main>
     <article>
       <h1>Lorem Ipsum</h1>
@@ -58,19 +55,27 @@ I'll get to it when it becomes an issue for my own use.
       <p>Morbi ac odio fermentum, scelerisque sapien at, fringilla libero. Curabitur accumsan molestie dolor, vitae vestibulum quam tempus vitae. Maecenas rhoncus purus sem. Pellentesque eu urna magna. Phasellus et lectus urna.</p>
     </article>
   </main>
-  <script src="includes/footer.js"></script>
+  <script>include('footer.js')</script>
 </body>
 </html>
 ```
 
+The `include.html()` function is used inside the include file to print HTML to the page.
+
+You can either pass a string, or a function with 3 helpers available - `link`, `data` and `template`.
+
+`link` and `data` are demonstrated below:
+
 ```js
 // head.js
-_include(`
-  <title># Replace with H1 text #</title>
+// the link() function allow you to define link as relative to the include file, it will be automatically remapped
+// the data variable is the object passed by the include() call
+include.html(({link, data})=>`
+  <title>${data.title}</title>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link rel="icon" type="image/svg+xml" href="img/favicon.svg">
-  <link rel="stylesheet" media="screen" href="css/style.css">
+  <link rel="icon" type="image/svg+xml" href="${link("../img/favicon.svg")}">
+  <link rel="stylesheet" media="screen" href="${link("../css/style.css")}">
   <script>
     document.addEventListener('DOMContentLoaded', ()=>{
       document.title = document.querySelector('h1').innerText;
@@ -79,106 +84,11 @@ _include(`
 `)
 ```
 
-### Async and defer for included scripts <a id='async'></a>
+### Passing HTML via `<template>` <a id='template'></a>
 
-As all dynamically inserted script tags are async by default, the include function automatically change async to false.
+This method utilizes the `<template>` tag, you must place the template right before the include script.
 
-However, the function check whether the `async` attribute exist, in which case it will leave async to true.
-
-Therefore, included scripts will behave exactly like how they would if they exists on the host page natively, and both `async` and `defer` attributes work as you expect.
-
-### Passing data to include files <a id='passing'></a>
-
-#### 1. JSON
-
-When providing a source for external script, the script tag content is ignored.
-
-But we can use this ignored content as data carrier to elegantly send data to the included file.
-
-The following example uses JSON.
-
-```html
-<script src="includes/head.js">
- {
-   "title":"My Article",
-   "keywords":"some,key,words",
- }
-</script>
-```
-```js
-// head.js
-let data = JSON.parse(document.currentScript.innerHTML);
-_include(`
-  <title>${data.title}</title>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="keywords" content="${data.keywords}"/>
-  <link rel="icon" type="image/svg+xml" href="img/favicon.svg">
-  <link rel="stylesheet" media="screen" href="css/style.css">
-`)
-```
-
-#### 2. `data()` method
-
-As JSON is not intended to be handwritten, it has the following usability drawbacks:
-
-1. No multiline string support
-2. Must quote object keys, adding to verbosity
-
-So as an alternative, the `_include.data()` method is provided to parse `<script>` tag content as native JavaScript using the `Function()` constructor.
-
-This allows you to pass data as if you're defining a variable, with all the syntactic sugar at your dispoal while preserving syntax highlighting.
-
-```html
-<!-- passing an object -->
-<script src="includes/article.js">
-{
-  theme: 'dark',
-  html: `
-    <h1>Title</h1>
-    <span>Subtitle</div>
-    <p>Praesent nec magna gravida, maximus purus eget, lobortis neque.</p>
-    <p>Nulla consectetur auctor turpis, id interdum libero placerat ac. Aliquam ullamcorper, justo sit amet vestibulum imperdiet, lorem ligula pulvinar velit, in dapibus ligula ipsum a enim.</p>
-  `
-}
-</script>
-```
-```js
-//article.js
-let data = _include.data();
-_include(`
-  <article class="${data.theme}">
-    ${data.html}
-  </article>
-`);
-```
-
-```html
-<!-- passing a string -->
-<script src="includes/article.js">
-`
-  <h1>Title</h1>
-  <span>Subtitle</div>
-  <p>Praesent nec magna gravida, maximus purus eget, lobortis neque.</p>
-  <p>Nulla consectetur auctor turpis, id interdum libero placerat ac. Aliquam ullamcorper, justo sit amet vestibulum imperdiet, lorem ligula pulvinar velit, in dapibus ligula ipsum a enim.</p>
-`
-</script>
-```
-```js
-//article.js
-let data = _include.data();
-_include(`
-  <article>
-    ${data}
-  </article>
-`);
-```
-
-#### 3. `template()` method
-
-This method utilizes the `<template>` tag, you must place the template before the include script in order to make it visible to the script.
-
-The advantage of the `_include.template()` method is that you do not need to escape unsafe characters.
+The advantage of this method is that you do not need to escape unsafe characters.
 
 Example shown below:
 
@@ -189,18 +99,16 @@ Example shown below:
   <p>Praesent nec magna gravida, maximus purus eget, lobortis neque.</p>
   <p>Nulla consectetur auctor turpis, id interdum libero placerat ac. Aliquam ullamcorper, justo sit amet vestibulum imperdiet, lorem ligula pulvinar velit, in dapibus ligula ipsum a enim.</p>
 </template>
-<script src="includes/prose.js"></script>
+<script>include('prose.js')</script>
 ```
 
 ```js
-let template = _include.template();
-// manipulate the template DOM as needed.
-_include(/`
+// prose.js
+include(({template})=>`
   <section class="prose">
     ${template.innerHTML}
   </section>
 `);
-template.remove();
 ```
 
 ### `<include-once>` tag <a id='once'></a>
@@ -209,11 +117,13 @@ In order to prevent resources and unique content from being included multiple ti
 
 *1. Include once within the same script file*
 
-When used by itself, the content of the `<include-once>` element is only rendered the first time the script file is included. All subsequent includes for the same include file will omit this content.
+When used by itself without a title attribute, the content of the `<include-once>` element is only rendered the first time the script file is included.
+
+All subsequent includes for, and within, the same include file will omit this content.
 
 ```js
 // duplicate.js
-_include(`
+include.html(`
 <include-once>
   <p>Unique</p>
 </include-once>
@@ -231,7 +141,7 @@ _include(`
 
 *2. Include once everywhere*
 
-By providing a unique `title` attribute, the content of the `<include-once>` element is associated with the title provided, this allows you to include only one copy of the content across multiple include files.
+By providing a unique `title` attribute, the content of the `<include-once>` element is associated with the title provided, this allows you to include only one copy of the content across multiple include files, and lets you use multiple `<include-once>` elements, with different titles, within the same include file.
 
 ```js
 // duplicate1.js
@@ -258,7 +168,11 @@ _include(`
 <p>Two</p>
 ```
 
-Note: the include function does not check whether the included content sharing the same title attribute are in fact identical, it will simply discard any subsequent blocks.
+> **Note:**
+> 
+> The include function does not check whether the included content are in fact identical.
+>
+> Only the title, or the URL of the include file, is checked.
 
 ### Infinite loop detection <a id='loop'></a>
 
@@ -270,16 +184,17 @@ If you want to apply advanced logic within an include script, and allow circular
 
 Relative path remapping allows you to include the same HTML from different directory levels without breaking links to assets.
 
-It works by detecting currentScript's `src` attribute, then parse the included HTML string and reconcile all the relative path detected based on the aforementioned `src` value.
+It works by detecting currentScript's `src` attribute, then use the link provide which is relative to the currentScript (include file) to calculate the correct URL.
 
-The logic is as followed, first the HTML string is parsed into a DocumentFragment, and then it will try to detect relative path within the following:
 
- - `href`, `src` and `srcset` attributes
- - `<object>` element's `data` attribute
- - `<form>` element's `action` attribute
- - `<style>` element and `style` attributes containing `url()` (with optional single or double quotes)
+### Async and defer for included scripts <a id='async'></a>
 
-By utilizing the DOM parser via DocumentFragment, paths that are part of the text (such as within code blocks) are excluded from remapping.
+As all dynamically inserted script tags are async by default, the include function automatically change async to false.
+
+However, if you are including a script tag with `async` attribute, it will be left alone.
+
+Therefore, included scripts will behave exactly like how they would if they exists on the host page natively, and both `async` and `defer` attributes work as you expect.
+
 
 ### FOUC prevention <a id='fouc'></a>
 
