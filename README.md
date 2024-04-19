@@ -1,4 +1,4 @@
-# HTML Include
+# HTML include
 
 Cross site, synchronous HTML include via the `<script>` tag in the manner of JSONP.
 
