@@ -2,7 +2,7 @@
 
 Cross site, synchronous HTML include via the `<script>` tag in the manner of JSONP.
 
-## Intended usage
+**Intended usage**
 
 Ideal for creating complex HTML documents, such as documentations, that can be viewed from local storage without using a static site generator.
 
