@@ -2,13 +2,20 @@
 
 const include = (()=>{
 
-  let log = [];
+  // include folder location, relative to this file
+  let root = document.currentScript.getAttribute('data-root');
+
+  let path = root ? link()(root) + '/' : '';
 
   let f = (src,data) => {
-    f.this(`<script src="${f.root}${src}">${JSON.stringify(data)}</script>`);
+    f.html(`<script src="${path}${src}">${data ? JSON.stringify(data) : ''}</script>`);
   }
 
-  f.this = (html)=>{
+  let log = [];
+
+  let blockable = 'blocking' in document.createElement('link');
+
+  f.html = (html)=>{
 
     let self = document.currentScript;
 
@@ -18,13 +25,13 @@ const include = (()=>{
         let _p = {};
         return {
           get link() {
-            return _p.link ??= f.link();
+            return _p.link ??= link();
           },
           get data() {
             return _p.data ??= data();
           },
-          get dom() {
-            return _p.dom ??= template();
+          get template() {
+            return _p.template ??= template();
           }
         }
       })();
@@ -64,16 +71,6 @@ const include = (()=>{
       }
     });
 
-    // simple loader
-    let required = html.querySelector('required-js');
-    if (!!required) {
-      let last = required.querySelector('script:last-of-type');
-      last.onload = f.resolve;
-      required.replaceWith(...required.childNodes)
-    } else {
-      f.resolve();
-    }
-
     // FOUC mitigation for external CSS
     if (document.readyState === 'loading') {
 
@@ -82,7 +79,7 @@ const include = (()=>{
 
       let links = html.querySelectorAll('link[rel=stylesheet]');
       // use "blocking" attribute (Chrome)
-      if ('blocking' in document.createElement('link')) {
+      if (blockable) {
         links.forEach((e)=>{
           e.setAttribute('blocking','render');
         });
@@ -127,7 +124,7 @@ const include = (()=>{
 
   }
 
-  f.link = ()=>{
+  function link() {
 
     let base = (document.currentScript.getAttribute('src') ?? '').trim();
     let prefix = '';
@@ -194,35 +191,6 @@ const include = (()=>{
       return path
     }
   }
-
-  let root = document.currentScript.getAttribute('data-root');
-  f.root = (!!root) ? f.link()(root) + '/' : '';
-
-  f.loading = true;
-
-  f.resolve = () => {
-    f.loading = false;
-    document.dispatchEvent(new Event('loaded'));
-  }
-
-  f.ready = (callBack) => {
-
-    let _ready = (callBack) => {
-      if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', callBack)
-      } else {
-        callBack()
-      }
-    }
-
-    let isReady = () => {_ready(() => {callBack()})}
-
-    if (f.loading) {
-      document.addEventListener('imported', isReady)
-    } else {
-      isReady();
-    }
-  };
 
   return f;
 
