@@ -16,7 +16,7 @@ It can also be used for apps, but CORS restriction means the use cases are limit
 
 *Advanced features:*
 
-- `data-root` attribute allows specifying include base directory
+- `data-dir` attribute allows specifying include base directory
 - `link()` function to remap relative paths inside includes
 - `data` and `template` variables for passing data to include files
 - `<include-once>` tag allowing smarter resource management
@@ -37,18 +37,18 @@ It can also be used for apps, but CORS restriction means the use cases are limit
 
 Include files are loaded using via the `include()` function inside an inline script tag.
 
-It accepts the URL of the include file, relative to the data-root (include folder location), and an optional data object used to pass data to the included file.
+It accepts the URL of the include file, relative to the data-dir (include folder location), and an optional data object used to pass data to the included file.
 
 This data object will be passed via `JSON.stringify()` so functions need to be passed via the `<template>` method instead.
 
-Data-root is set either in the `data-root` attribute of the script tag that loads the `include.js` library , or can be hard coded in the `include.js` file itself.
+Data-dir is set either in the `data-dir` attribute of the script tag that loads the `include.js` library , or can be hard coded in the `include.js` file itself.
 
 ```html
 <!DOCTYPE html>
 <html>
 <head>
   <!-- initialize and define the relative path (from the include.js) to the include folder -->
-  <script src="js/include.js" data-root="../includes"></script>
+  <script src="js/include.js" data-dir="../includes"></script>
   <!-- include file, optionally pass an object as the second argument -->
   <script>include('head.js', {title: "Hello World"})</script>
 </head>
