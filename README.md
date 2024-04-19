@@ -23,11 +23,9 @@ Cross site, synchronous HTML include via the `<script>` tag in the manner of JSO
 3. [Passing HTML via `<template>`](#template)
 4. [`<include-once>` tag](#once)
 5. [Infinite loop detection](#loop)
-6. [Relative path remapping](#remap)
-7. [Async and defer for included scripts](#async)
-8. [FOUC prevention](#fouc)
-9. [Syntax Highlighting](#highlight)
-10. [Tips and tricks](#tricks)
+6. [Async and defer for included scripts](#async)8. [FOUC prevention](#fouc)
+7. [Syntax Highlighting](#highlight)
+8. [Tips and tricks](#tricks)
 
 ## Intended use cases<a id='intended'></a>
 
@@ -189,13 +187,6 @@ include.html(`
 By default, the include function will stop any infinite include loops (circular include reference) it detects.
 
 If you want to apply advanced logic within an include script, and allow circular reference, then you can disable this behavior by adding the attribute `data-loop` to the script tag.
-
-## Relative path remapping <a id='remap'></a>
-
-Relative path remapping allows you to include the same HTML from different directory levels without breaking links to assets.
-
-It works by detecting currentScript's `src` attribute, then use the link provide which is relative to the currentScript (include file) to calculate the correct URL.
-
 
 ## Async and defer for included scripts <a id='async'></a>
 
