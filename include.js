@@ -3,7 +3,7 @@
 const include = (()=>{
 
   // include folder location, relative to this file
-  let root = document.currentScript.getAttribute('data-root');
+  let root = document.currentScript.getAttribute('data-dir');
 
   let path = root ? link()(root) + '/' : '';
 
