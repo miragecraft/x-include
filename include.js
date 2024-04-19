@@ -1,190 +1,229 @@
-const _include = (()=>{
 'use strict';
 
-let log = [];
+const include = (()=>{
 
-return (html)=>{
-  let script = document.currentScript;
+  let log = [];
 
-  // DOM insertion allow <script> to trigger
-  html = document.createRange().createContextualFragment(html);
-
-  // prepare base url
-  let base = (script.getAttribute('src') ?? '').trim().split("?")[0];
-  let prefix = '';
-  let limit;
-  if (base.includes('//')) {
-    prefix = base.substring(0, base.indexOf('//')+2);
-    base = base.substring(base.indexOf('//')+2);
-    limit = 1;
-  } else
-  if (base.startsWith('/')) {
-    prefix = '/';
-    base = base.substring(1);
-    limit = 0;
-  } else
-  if (base.startsWith('./')) {
-    base = base.substring(2)
-  }
-  base = base.split('/');
-  base.pop(); // remove filename
-
-  // remap relative linked assets
-  html.querySelectorAll('[href]').forEach((e)=>{
-    e.setAttribute('href', resolve(e.getAttribute('href')))
-  });
-  html.querySelectorAll('[src]').forEach((e)=>{
-    e.setAttribute('src', resolve(e.getAttribute('src')))
-  });
-  html.querySelectorAll('[srcset]').forEach((e)=>{
-    let srcset = e.getAttribute('srcset').replace(/\s\s+/g, ' ').split(',');
-    srcset.forEach((src)=>{
-      src = src.trim().split(' ');
-      src[0] = resolve(src[0]);
-      src = src.join(' ');
-    })
-    e.setAttribute('srcset', srcset.join(','))
-  }); 
-  html.querySelectorAll('object[data]').forEach((e)=>{
-    e.setAttribute('data', resolve(e.getAttribute('data')))
-  });
-  html.querySelectorAll('form[action]').forEach((e)=>{
-    e.setAttribute('action', resolve(e.getAttribute('action')))
-  });
-  html.querySelectorAll('style').forEach((e)=>{
-    e.innerHTML = css_remap(e.innerHTML);  
-  });
-  html.querySelectorAll('[style]').forEach((e)=>{
-    e.setAttribute('style', css_remap(e.getAttribute('style')))
-  });
-
-  // <include-once> function
-  html.querySelectorAll('include-once').forEach((e)=>{
-    let entry = e.getAttribute('title') ?? script.src;
-    if (log.includes(entry)) {
-      e.remove()
-    } else {
-      log.push(entry);
-      e.replaceWith(...e.childNodes)
-    }
-  });
-
-  // set up ancestry
-  let ancestry = new Set(script.dataset.injected?.split(',').filter(Boolean) ?? []);
-
-  if (!!script.src)
-    ancestry.add(index(script.src));
-
-  html.querySelectorAll('script').forEach((e)=>{
-    // add ancestry
-    e.setAttribute('data-injected', [...ancestry].join(','));
-    // skip if inline script
-    if (!e.src) return;
-    // disable async
-    if (!e.hasAttribute('async')) e.async = false;
-    // enforce uniqueness
-    if (e.hasAttribute('data-unique') && log.includes(e.src)) e.remove();
-    // if looping, propagate
-    if (script.hasAttribute('data-loop')) {
-      e.setAttribute('data-loop', '')
-    }
-    // else prevent infinite loop
-    else if (ancestry.has(index(e.src))) {
-      throw new Error('Infinite include loop terminated.');
-    }
-  })
-
-
-  if (document.readyState === 'loading') {
-    let links = html.querySelectorAll('link[rel=stylesheet]');
-    // use "blocking" attribute (Chrome)
-    if ('blocking' in document.createElement('link')) {
-      links.forEach((e)=>{
-        e.setAttribute('blocking','render');
-      });
-    }
-    // document.write fallback
-    else if (!script.hasAttribute('data-injected')) {
-      links.forEach((e)=>{
-        e.replaceWith(write(e));
-      })
-    }
+  let f = (src,data) => {
+    f.this(`<script src="${f.root}${src}">${JSON.stringify(data)}</script>`);
   }
 
-  script.replaceWith(html);
+  f.this = (html)=>{
 
+    let self = document.currentScript;
 
-  function write(e){
-    return document.createRange().createContextualFragment(`
-      <script>
-        document.write(\`${e.outerHTML}\`);
-        document.currentScript.remove()
-      </script>
-    `)
-  }
+    if (typeof html === 'function') {
 
-  function index(str) {
-    if (log.includes(str)) {
-      return (log.indexOf(str)+1).toString();
-    } else {
-      log.push(str);
-      return log.length.toString();
+      let params = (()=>{
+        let _p = {};
+        return {
+          get link() {
+            return _p.link ??= f.link();
+          },
+          get data() {
+            return _p.data ??= data();
+          },
+          get dom() {
+            return _p.dom ??= template();
+          }
+        }
+      })();
+
+      html = html(params);
     }
-  }
 
-  function css_remap(str) {
-    return str.replaceAll(/url\(("|')?(.*?)\1\)/gi,
-        (str,quotes='',url)=>`url(${quotes}${resolve(url)}${quotes})`); 
-  }
+    // DOM insertion allow <script> to trigger
+    html = document.createRange().createContextualFragment(html);
 
-  function resolve(path) {
-    path = path.trim();
-    // ignore non-relative path
-    if (
-      path.includes('//') ||
-      path.startsWith('/') ||
-      path.startsWith('data:')
-    ) {return path}
-    // remove current directory reference
-    if (path.startsWith('./')) {
-      path = path.subString(2)
-    }
-    // count backtracks
-    let backtrack = 0;
-    while (path.startsWith('../')) {
-      path = path.substring(3);
-      backtrack++;
-    }
-    // enforce backtrack limit
-    if (!!limit && backtrack > base.length - limit) {
-      throw new Error('Cannot resolve path');
-    } 
-    // apply backtracking to base path
-    let bridge = [...base];
-    while (backtrack > 0) {
-      if (bridge.length !== 0 && bridge.slice(-1) !== '..') {
-        bridge.pop()
+    html.querySelectorAll('include-once').forEach((e)=>{
+      let entry = e.getAttribute('title') ?? self.src;
+      if (log.includes(entry)) {
+        e.remove()
       } else {
-        bridge.push('..')
+        log.push(entry);
+        e.replaceWith(...e.childNodes)
       }
-      backtrack--
+    });
+
+    let ancestry = new Set(self.dataset.injected?.split(',').filter(Boolean) ?? []);
+
+    if (!!self.src) ancestry.add(index(self.src));
+
+    let scripts = html.querySelectorAll('script');
+
+    scripts.forEach((e)=>{
+      e.setAttribute('data-injected', [...ancestry].join(','));
+      if (!e.src) return;
+      if (!e.hasAttribute('async')) e.async = false;
+      if (e.hasAttribute('data-unique') && log.includes(e.src)) e.remove();
+      if (self.hasAttribute('data-loop')) {
+        e.setAttribute('data-loop', '')
+      }
+      else if (ancestry.has(index(e.src))) {
+        throw new Error('Infinite include loop terminated');
+      }
+    });
+
+    // simple loader
+    let required = html.querySelector('required-js');
+    if (!!required) {
+      let last = required.querySelector('script:last-of-type');
+      last.onload = f.resolve;
+      required.replaceWith(...required.childNodes)
+    } else {
+      f.resolve();
     }
-    // construct final path
-    return prefix + bridge.join('/') + ((!!bridge.length) ? '/' : '') + path
+
+    // FOUC mitigation for external CSS
+    if (document.readyState === 'loading') {
+
+      // force evaluate via inline document.write
+      scripts.forEach((e)=>{e.replaceWith(write(e))})
+
+      let links = html.querySelectorAll('link[rel=stylesheet]');
+      // use "blocking" attribute (Chrome)
+      if ('blocking' in document.createElement('link')) {
+        links.forEach((e)=>{
+          e.setAttribute('blocking','render');
+        });
+      }
+      // document.write fallback
+      else if (!self.hasAttribute('data-injected')) {
+        links.forEach((e)=>{
+          e.replaceWith(write(e));
+        })
+      }
+    }
+
+    self.replaceWith(html);
+
+    function write(e){
+      let str = e.outerHTML.replace('</script>', '</scr\` + \`ipt>');
+      return document.createRange().createContextualFragment(`
+        <script>
+          document.write(\`${str}\`);
+          document.currentScript.remove()
+        </script>
+      `)
+    }
+
+    function index(str) {
+      let i = log.indexOf(str)+1;
+      if (!i) i = log.push(str);
+      return i.toString();
+    }
+
+    function data() {
+      return JSON.parse(self.innerHTML.trim())
+    }
+
+    function template() {
+      let prev = self.previousElementSibling;
+      if (!prev.matches('template')) {
+        throw new Error('Missing <template> before the include <script>');
+      }
+      return prev.parentElement.removeChild(prev);
+    }
+
   }
 
-}
+  f.link = ()=>{
+
+    let base = (document.currentScript.getAttribute('src') ?? '').trim();
+    let prefix = '';
+
+    if (base.includes('//')) {
+      let split = 1+base.indexOf('/', 2+base.indexOf('//'));
+      prefix = base.substring(0, split);
+      base = base.substring(split);
+    } else
+    if (base.startsWith('/')) {
+      prefix = '/';
+      base = base.substring(1);
+    } else
+    if (base.startsWith('./')) {
+      base = base.substring(2)
+    } else
+    if (base.startsWith('../')) {
+      let split = 3+base.lastIndexOf('../');
+      prefix = base.substring(0, split);
+      base = base.substring(split); 
+    }
+
+    base = base.split('/');
+    base.pop();
+
+    return function(path) {
+
+      if (!path) return;
+
+      path = path.trim();
+
+      if (
+        path.includes('//') ||
+        path.startsWith('/') ||
+        path.startsWith('data:')
+      ) {return path}
+
+      if (path.startsWith('./')) {
+        path = path.subString(2)
+      }
+      path = base.concat(path.split('/'));
+
+      let total = path.indexOf('..');
+      if (total>0) {
+        let intent = path.lastIndexOf('..')-total+1;
+        let actual = Math.min(total,intent);
+        path.splice(total-actual,actual*2);
+      }
+
+      /* simpler but less efficient
+      for (let i = path.indexOf('..'); i>0; i = path.indexOf('..')) {
+        path.splice(i-1,2)
+      }
+      */
+
+      path = prefix + path.join('/');
+
+      if (path.indexOf('../') > 0) {
+        throw new Error('Cannot resolve path');
+      } 
+
+
+
+      return path
+    }
+  }
+
+  let root = document.currentScript.getAttribute('data-root');
+  f.root = (!!root) ? f.link()(root) + '/' : '';
+
+  f.loading = true;
+
+  f.resolve = () => {
+    f.loading = false;
+    document.dispatchEvent(new Event('loaded'));
+  }
+
+  f.ready = (callBack) => {
+
+    let _ready = (callBack) => {
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', callBack)
+      } else {
+        callBack()
+      }
+    }
+
+    let isReady = () => {_ready(() => {callBack()})}
+
+    if (f.loading) {
+      document.addEventListener('imported', isReady)
+    } else {
+      isReady();
+    }
+  };
+
+  return f;
 
 })();
-
-// data parser (JSON alternative)
-_include.data = (()=>new Function('return '+document.currentScript.innerHTML.trim())());
-// retrieve previous template tag
-_include.template = (()=>{
-  let template = document.currentScript.previousElementSibling;
-  if (!template.matches('template'))
-    throw new Error('Missing <template>, must be place before the include <script>.');
-  let cache = template.cloneNode(true);
-  template.remove();
-  return cache;
-})
