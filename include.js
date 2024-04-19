@@ -3,9 +3,9 @@
 const include = (()=>{
 
   // include folder location, relative to this file
-  let root = document.currentScript.getAttribute('data-dir');
+  let dir = document.currentScript.getAttribute('data-dir');
 
-  let path = root ? link()(root) + '/' : '';
+  let path = dir ? link()(dir) + '/' : '';
 
   let f = (src,data) => {
     f.html(`<script src="${path}${src}">${data ? JSON.stringify(data) : ''}</script>`);
