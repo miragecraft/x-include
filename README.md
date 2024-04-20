@@ -129,7 +129,7 @@ In order to prevent resources and unique content from being included multiple ti
 
 ### Include once within the same script file
 
-When used by itself without a title attribute, the content of the `<include-once>` element will only be rendered once for the same include file.
+When used by itself without an `id`, the content of the `<include-once>` element will only be rendered once for the same include file.
 
 This apples to multiple occurrences within the file itself, as well as multiple includes targeting the file.
 
@@ -153,19 +153,19 @@ include.html(`
 
 ### Include once everywhere
 
-By providing a unique `title` attribute, the content of the `<include-once>` element is associated with the title provided, this allows you to include only one copy of the content across multiple include files, and lets you use multiple `<include-once>` elements, with different titles, within the same include file.
+By providing an unique `id`, the content of the `<include-once>` element is associated with the ID provided, this allows you to include only one copy of the content across multiple include files, and lets you use multiple `<include-once>` elements, with different IDs, within the same include file.
 
 ```js
 // duplicate1.js
 include.html(`
-  <include-once title="lorem-ipsum">
+  <include-once id="lorem-ipsum">
     <p>Unique</p>
   </include-once>
   <p>One</p>
 `)
 // duplicate2.js
 include.html(`
-  <include-once title="lorem-ipsum">
+  <include-once id="lorem-ipsum">
     <p>Unique</p>
   </include-once>
   <p>Two</p>
@@ -179,8 +179,6 @@ include.html(`
 <p>One</p>
 <p>Two</p>
 ```
-
-> **Note:** the include-once function does not use the contents for uniqueness checks.
 
 ## Infinite loop detection <a id='loop'></a>
 
