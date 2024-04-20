@@ -2,7 +2,7 @@
 
 const include = (()=>{
 
-  // include folder location, relative to this file
+  // include directory, relative to this file
   let dir = document.currentScript.getAttribute('data-dir');
 
   let path = dir ? link()(dir) + '/' : '';
@@ -43,7 +43,7 @@ const include = (()=>{
     html = document.createRange().createContextualFragment(html);
 
     html.querySelectorAll('include-once').forEach((e)=>{
-      let entry = e.getAttribute('title') ?? self.src;
+      let entry = e.getAttribute('id') ?? self.src;
       if (log.includes(entry)) {
         e.remove()
       } else {
