@@ -1,10 +1,12 @@
+/* Cross-site HTML includes (v.2024-04-22) | github.com/miragecraft/x-include */
+
 'use strict';
 
 const include = (()=>{
 
+  let self = document.currentScript;
   // include directory, relative to this file
-  let dir = document.currentScript.getAttribute('data-dir');
-
+  let dir = self.getAttribute('data-dir');
   let path = dir ? link()(dir) + '/' : '';
 
   let f = (src,data) => {
@@ -13,6 +15,7 @@ const include = (()=>{
 
   let log = [];
 
+  let global_loop = self.hasAttribute('data-loop');
   let blockable = 'blocking' in document.createElement('link');
 
   f.html = (html)=>{
@@ -59,7 +62,7 @@ const include = (()=>{
       let ancestry = new Set(self.getAttribute('data-injected')?.split(',') ?? []);
       if (!!self.src) ancestry.add(index(self.src));
       let ancestry_str = [...ancestry].join(',');
-      let loop = self.hasAttribute('data-loop');
+      let loop = global_loop || self.hasAttribute('data-loop');
 
       scripts.forEach((e)=>{
         if (ancestry.size) e.setAttribute('data-injected', ancestry_str);
