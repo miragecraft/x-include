@@ -1,4 +1,4 @@
-# x-Include
+# x-include
 
 Cross-site HTML include via `<script>` tags in the manner of JSONP.
 
