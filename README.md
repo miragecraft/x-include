@@ -7,6 +7,7 @@ Cross-site HTML include via `<script>` tags in the manner of JSONP.
 - Bypass CORS, usable with `file://` protocol
 - Retains the synchronous programming model
 - Parser-blocking for FOUC suppression
+- Trading speed for simplicity
 
 *Advanced features:*
 
@@ -15,7 +16,7 @@ Cross-site HTML include via `<script>` tags in the manner of JSONP.
 - `link()` function to remap relative paths inside includes
 - `data` and `template` variables for passing data to include files
 - `<include-once>` tag allowing smarter resource management
-- Detect and block infinite include loops (can be bypassed)
+- Detect and block infinite include loops (bypass-able)
 
 *The following just works, even from your local drive:*
 
