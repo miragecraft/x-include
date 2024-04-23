@@ -1,4 +1,4 @@
-/* Cross-site HTML includes (v.2024-04-22) | github.com/miragecraft/x-include */
+// Cross-site HTML includes (v.2024-04-22) | github.com/miragecraft/x-include
 
 'use strict';
 
