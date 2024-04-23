@@ -47,6 +47,6 @@ include.html(x=>`
   <link rel="icon" type="image/svg+xml" href="${x.link("../img/favicon.svg")}">
   <link rel="stylesheet" media="screen" href="${x.link("../css/style.css")}">
 `)
-``
+```
 
 [Documentation](https://miragecraft.com/@/page/gFGr5LUEipdjouz1)
