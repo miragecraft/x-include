@@ -2,7 +2,7 @@
 
 Cross-site HTML include via `<script>` tags in the manner of JSONP.
 
-PHP includes without the server.
+PHP include without the server.
 
 *Basic features:*
 
