@@ -1,6 +1,6 @@
 # XSH include
 
-Cross-site, synchronous HTML include via `<script>` tags in the manner of JSONP.
+Cross-site HTML include via `<script>` tags in the manner of JSONP.
 
 PHP includes without the server.
 
