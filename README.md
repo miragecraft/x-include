@@ -6,12 +6,11 @@ Cross-site HTML include via `<script>` tags in the manner of JSONP.
 
 - Bypass CORS, usable with `file://` protocol
 - Retains the synchronous programming model
+- Preserves order-of-evaluation for nested includes during page parsing
 - Parser-blocking for FOUC suppression
-- Trading speed for simplicity
 
 *Advanced features:*
 
-- Preserves order-of-evaluation for nested includes during page parsing
 - `data-dir` attribute allows specifying include base directory
 - `link()` function to remap relative paths inside includes
 - `data` and `template` variables for passing data to include files
