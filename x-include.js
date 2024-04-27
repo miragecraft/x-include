@@ -1,4 +1,4 @@
-// Cross-site HTML includes (v.2024-04-22) | github.com/miragecraft/x-include
+// Cross-site HTML includes (v1.0) | github.com/miragecraft/x-include
 
 'use strict';
 
@@ -10,10 +10,11 @@ const include = (()=>{
   let path = dir ? link()(dir) + '/' : '';
 
   let f = (src,data) => {
-    f.html(`<script src="${path}${src}">${data ? JSON.stringify(data) : ''}</script>`);
+    f.html(`<script src="${path}${src}" x>${data ? JSON.stringify(data) : ''}</script>`);
   }
 
   let log = [];
+  let cache = new Map();
 
   let global_loop = self.hasAttribute('data-loop');
   let blockable = 'blocking' in document.createElement('link');
@@ -77,7 +78,7 @@ const include = (()=>{
     }
 
     if (document.readyState === 'loading') {
-      // force evaluate via inline document.write
+      // preserve evaluation order via document.write
       scripts.forEach((e)=>{e.replaceWith(write(e))})
       // FOUC mitigation for external CSS
       let links = html.querySelectorAll('link[rel=stylesheet]');
@@ -95,8 +96,22 @@ const include = (()=>{
           })
         }
       }
+    } else {
+      // preserve evaluation order via include unwrapping
+      if (cache.has(self)) {
+        let combined = cache.get(self);
+        combined.querySelector('x-include').replaceWith(html);
+        html = combined;
+        cache.delete(self); 
+      }
+      let target = html.querySelector('script[x]');
+      if (!!target) {
+        let marker = document.createElement('x-include');
+        target.replaceWith(marker);
+        cache.set(target, html);
+        html = target;
+      }
     }
-
     self.replaceWith(html);
 
     function write(e){
