@@ -2,6 +2,8 @@
 
 Cross-site HTML include via `<script>` tags in the manner of JSONP.
 
+Client-side include that works like server-side include.
+
 *Basic features:*
 
 - Bypass CORS, usable with `file://` protocol
