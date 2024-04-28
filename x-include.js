@@ -4,13 +4,14 @@
 
 const include = (()=>{
 
-  let self = document.currentScript;
+  let self = caller();
   // include directory, relative to this file
   let dir = self.getAttribute('data-dir');
   let path = dir ? link()(dir) + '/' : '';
 
   let f = (src,data) => {
-    f.html(`<script src="${path}${src}" x>${data ? JSON.stringify(data) : ''}</script>`);
+    let loop = caller().hasAttribute('data-loop') ? 'data-loop' : '';
+    f.html(`<script src="${path}${src}" ${loop} x>${data ? JSON.stringify(data) : ''}</script>`);
   }
 
   let log = [];
@@ -21,7 +22,7 @@ const include = (()=>{
 
   f.html = (html)=>{
 
-    let self = document.currentScript;
+    let self = caller();
 
     if (typeof html === 'function') {
 
@@ -61,7 +62,7 @@ const include = (()=>{
     if (scripts.length) {
 
       let ancestry = new Set(self.getAttribute('data-injected')?.split(',') ?? []);
-      if (!!self.src) ancestry.add(index(self.src));
+      if (self.src) ancestry.add(index(self.src));
       let ancestry_str = [...ancestry].join(',');
       let loop = global_loop || self.hasAttribute('data-loop');
 
@@ -104,8 +105,25 @@ const include = (()=>{
         html = combined;
         cache.delete(self); 
       }
+      // detect include script via 'x' attribute
       let target = html.querySelector('script[x]');
-      if (!!target) {
+      // detect by function call
+      // if (!target) {
+      //   [...scripts].some((e)=>{
+      //     if (
+      //       !e.src && e.textContent
+      //       // remove strings
+      //       .replaceAll(/(?:(["'`])[^\1]*?\1)/g, '')
+      //       // remove comments
+      //       .replaceAll(/\/\*[\s\S]*?\*\/|(?<=[^:])\/\/.*|^\/\/.*/g,'')
+      //       // has the include function call
+      //       .match(/(?<=\s|^)include\(/)
+      //     ) {
+      //       target = e; return true;
+      //     }
+      //   });
+      // }
+      if (target) {
         let marker = document.createElement('x-include');
         target.replaceWith(marker);
         cache.set(target, html);
@@ -115,7 +133,7 @@ const include = (()=>{
     self.replaceWith(html);
 
     function write(e){
-      let str = e.outerHTML.replace('</script>', '<\`+\`/script>');
+      let str = e.outerHTML.replaceAll('</script>', '<\`+\`/script>');
       return document.createRange().createContextualFragment(`
         <script>
           document.write(\`${str}\`);
@@ -146,9 +164,13 @@ const include = (()=>{
 
   }
 
+  function caller() {
+    return document.currentScript;
+  }
+
   function link() {
 
-    let base = (document.currentScript.getAttribute('src') ?? '').trim();
+    let base = (caller().getAttribute('src') ?? '').trim();
     let prefix = '';
 
     if (base.includes('//')) {
