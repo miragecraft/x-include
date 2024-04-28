@@ -2,8 +2,6 @@
 
 Cross-site HTML include via `<script>` tags in the manner of JSONP.
 
-Client-side include that works like server-side include.
-
 [Full documentation](https://miragecraft.com/@/page/gFGr5LUEipdjouz1)
 
 *Basic features:*
