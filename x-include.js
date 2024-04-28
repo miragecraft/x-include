@@ -108,21 +108,21 @@ const include = (()=>{
       // detect include script via 'x' attribute
       let target = html.querySelector('script[x]');
       // detect by function call
-      // if (!target) {
-      //   [...scripts].some((e)=>{
-      //     if (
-      //       !e.src && e.textContent
-      //       // remove strings
-      //       .replaceAll(/(?:(["'`])[^\1]*?\1)/g, '')
-      //       // remove comments
-      //       .replaceAll(/\/\*[\s\S]*?\*\/|(?<=[^:])\/\/.*|^\/\/.*/g,'')
-      //       // has the include function call
-      //       .match(/(?<=\s|^)include\(/)
-      //     ) {
-      //       target = e; return true;
-      //     }
-      //   });
-      // }
+      if (!target) {
+        [...scripts].some((e)=>{
+          if (
+            !e.src && e.textContent
+            // remove strings
+            .replaceAll(/(?:(["'`])[^\1]*?\1)/g, '')
+            // remove comments
+            .replaceAll(/\/\*[\s\S]*?\*\/|(?<=[^:])\/\/.*|^\/\/.*/g,'')
+            // has the include function call
+            .match(/(?<=\s|^)include\(/)
+          ) {
+            target = e; return true;
+          }
+        });
+      }
       if (target) {
         let marker = document.createElement('x-include');
         target.replaceWith(marker);
