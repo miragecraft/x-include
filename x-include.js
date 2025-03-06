@@ -1,4 +1,4 @@
-// Cross-site HTML includes (v1.0.1) | github.com/miragecraft/x-include
+// Cross-site HTML includes (v1.0.2) | github.com/miragecraft/x-include
 
 'use strict';
 
@@ -84,7 +84,12 @@ const include = (()=>{
       && !self.hasAttribute('async')
       && !self.hasAttribute('defer')
     ) {
-      html = write(html);
+      // document.write for FOUC mitigation
+      let div = document.createElement("div");
+      div.appendChild(html.cloneNode(true));
+      document.write(div.innerHTML);
+      self.remove();
+      return;
     } else {
       // preserve evaluation order via include unwrapping
       if (cache.has(self)) {
@@ -131,18 +136,6 @@ const include = (()=>{
       }
     }
     self.replaceWith(html);
-
-    function write(e){
-      let div = document.createElement("div");
-      div.appendChild(e.cloneNode(true));
-      let str = div.innerHTML.replaceAll('</script>', '<\`+\`/script>');
-      return document.createRange().createContextualFragment(`
-        <script>
-          document.write(\`${str}\`);
-          document.currentScript.remove()
-        </script>
-      `)
-    }
 
     function index(str) {
       let i = log.indexOf(str)+1;
