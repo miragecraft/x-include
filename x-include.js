@@ -1,4 +1,4 @@
-// Cross-site HTML includes (v1.0) | github.com/miragecraft/x-include
+// Cross-site HTML includes (v1.1) | github.com/miragecraft/x-include
 
 'use strict';
 
@@ -78,25 +78,13 @@ const include = (()=>{
       });
     }
 
-    if (document.readyState === 'loading') {
-      // preserve evaluation order via document.write
-      scripts.forEach((e)=>{e.replaceWith(write(e))})
-      // FOUC mitigation for external CSS
-      let links = html.querySelectorAll('link[rel=stylesheet]');
-      if (links.length) {
-        // use "blocking" attribute (Chrome)
-        if (blockable) {
-          links.forEach((e)=>{
-            e.setAttribute('blocking','render');
-          });
-        }
-        // document.write fallback
-        else if (!self.hasAttribute('data-injected')) {
-          links.forEach((e)=>{
-            e.replaceWith(write(e));
-          })
-        }
-      }
+    if (
+      document.readyState === 'loading'
+      && !cache.has(self)
+      && !self.hasAttribute('async')
+      && !self.hasAttribute('defer')
+    ) {
+      html = write(html);
     } else {
       // preserve evaluation order via include unwrapping
       if (cache.has(self)) {
@@ -123,17 +111,31 @@ const include = (()=>{
           }
         });
       }
+      // unwrap
       if (target) {
         let marker = document.createElement('x-include');
         target.replaceWith(marker);
         cache.set(target, html);
         html = target;
+      // complete
+      } else {
+        // FOUC mitigation for external CSS using "blocking" attribute (Chrome)
+        if (blockable) {
+          let links = html.querySelectorAll('link[rel=stylesheet]');
+          if (links.length) {
+            links.forEach((e)=>{
+              e.setAttribute('blocking','render');
+            });
+          }
+        }
       }
     }
     self.replaceWith(html);
 
     function write(e){
-      let str = e.outerHTML.replaceAll('</script>', '<\`+\`/script>');
+      let div = document.createElement("div");
+      div.appendChild(e.cloneNode(true));
+      let str = div.innerHTML.replaceAll('</script>', '<\`+\`/script>');
       return document.createRange().createContextualFragment(`
         <script>
           document.write(\`${str}\`);
